@@ -1,0 +1,55 @@
+services:
+
+  # ── Trading engine ──────────────────────────────────────────────────────
+  engine:
+    build: .
+    image: hashbot:latest
+    container_name: hashbot-engine
+    restart: unless-stopped
+    command: python main.py
+    environment:
+      HASHBOT_DATA_DIR: /data
+    volumes:
+      - hashbot_data:/data
+    networks:
+      - hashbot_net
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # ── Dashboard ───────────────────────────────────────────────────────────
+  dashboard:
+    build: .
+    image: hashbot:latest
+    container_name: hashbot-dashboard
+    restart: unless-stopped
+    command: python dashboard.py
+    environment:
+      HASHBOT_DATA_DIR: /data
+    volumes:
+      - hashbot_data:/data
+    ports:
+      # Change the left-hand number to move the dashboard to a different port.
+      - "${HASHBOT_PORT:-8000}:8000"
+    networks:
+      - hashbot_net
+    depends_on:
+      - engine
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  # Named volume — survives container restarts and image upgrades.
+  # Contains: config.json, price_history.json, engine_state.json,
+  #           settings.json, exports/
+  hashbot_data:
+    driver: local
+
+networks:
+  hashbot_net:
+    driver: bridge

@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Hashbot</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --md-primary:                #FFB74D;
+  --md-on-primary:             #4A2000;
+  --md-primary-container:      #6B3300;
+  --md-on-primary-container:   #FFDDB3;
+  --md-secondary:              #E0BB8E;
+  --md-on-secondary:           #402D00;
+  --md-secondary-container:    #5C4100;
+  --md-on-secondary-container: #FFDDB3;
+  --md-tertiary:               #B5CCB8;
+  --md-on-tertiary:            #213527;
+  --md-tertiary-container:     #374B3D;
+  --md-on-tertiary-container:  #D1E8D4;
+  --md-error:                  #FFB4AB;
+  --md-on-error:               #690005;
+  --md-error-container:        #93000A;
+  --md-on-error-container:     #FFDAD6;
+  --md-bg:                     #000000;
+  --md-on-bg:                  #FFEEDD;
+  --md-surface:                #000000;
+  --md-on-surface:             #FFEEDD;
+  --md-surface-variant:        #52431C;
+  --md-on-surface-variant:     #D6C28C;
+  --md-outline:                #9F8D5A;
+  --md-outline-variant:        #3A2800;
+  --md-surface-low:            #1A0A00;
+  --md-surface-container:      #2A1500;
+  --md-surface-high:           #321C00;
+  --md-surface-highest:        #3E2500;
+  --md-green:                  #66BB6A;
+  --md-green-container:        #1B3D1C;
+  --r-xs: 4px; --r-sm: 8px; --r-md: 12px;
+  --r-lg: 16px; --r-xl: 28px; --r-full: 9999px;
+  --elev-1: 0 1px 2px rgba(0,0,0,.5), 0 1px 3px 1px rgba(0,0,0,.3);
+  --elev-2: 0 1px 2px rgba(0,0,0,.5), 0 2px 6px 2px rgba(0,0,0,.3);
+  --elev-3: 0 1px 3px rgba(0,0,0,.5), 0 4px 8px 3px rgba(0,0,0,.3);
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+html { font-size:16px; }
+body { font-family:Roboto,sans-serif; background:var(--md-bg); color:var(--md-on-bg); min-height:100dvh; overscroll-behavior:none; }
+
+.top-app-bar { position:sticky; top:0; z-index:100; height:64px; background:var(--md-surface-container); display:flex; align-items:center; justify-content:space-between; padding:0 16px; box-shadow:var(--elev-2); }
+.app-brand { display:flex; align-items:center; gap:10px; }
+.app-logo { width:36px; height:36px; background:var(--md-primary-container); border-radius:var(--r-md); display:flex; align-items:center; justify-content:center; color:var(--md-primary); box-shadow:0 0 16px rgba(255,183,77,0.2); }
+.app-name { font-size:1.375rem; font-weight:400; color:var(--md-on-surface); letter-spacing:0.009rem; }
+.live-pill { display:flex; align-items:center; gap:6px; padding:6px 14px; background:var(--md-secondary-container); border-radius:var(--r-full); font-size:0.75rem; font-weight:500; color:var(--md-on-secondary-container); letter-spacing:0.031rem; }
+.live-dot { width:6px; height:6px; border-radius:50%; background:var(--md-green); animation:pulse 2s ease infinite; }
+@keyframes pulse { 0%,100% { box-shadow:0 0 0 0 rgba(102,187,106,0.5); } 50% { box-shadow:0 0 0 4px rgba(102,187,106,0); } }
+
+main { padding:0 16px 88px; max-width:600px; margin:0 auto; }
+.tab-content { display:none; }
+.tab-content.active { display:block; animation:fade-up 200ms cubic-bezier(0.2,0,0,1); }
+@keyframes fade-up { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.section-header { padding:20px 0 10px; font-size:0.875rem; font-weight:500; color:var(--md-primary); letter-spacing:0.009rem; }
+
+.stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+.stat-card { background:var(--md-surface-high); border-radius:var(--r-xl); padding:16px; box-shadow:var(--elev-1); }
+.stat-card--primary { background:var(--md-primary-container); }
+.stat-label { font-size:0.6875rem; font-weight:500; text-transform:uppercase; letter-spacing:0.031rem; color:var(--md-on-surface-variant); margin-bottom:8px; }
+.stat-card--primary .stat-label { color:var(--md-on-primary-container); opacity:0.75; }
+.stat-value { font-size:1.4rem; font-weight:500; font-family:'Roboto Mono',monospace; color:var(--md-on-surface); line-height:1.1; letter-spacing:-0.02em; }
+.stat-card--primary .stat-value { color:var(--md-on-primary-container); }
+.stat-value--primary  { color:var(--md-primary); }
+.stat-value--green    { color:var(--md-green); }
+.stat-value--tertiary { color:var(--md-tertiary); }
+.stat-value--error    { color:var(--md-error); }
+.stat-unit { font-size:0.75rem; color:var(--md-on-surface-variant); margin-top:4px; letter-spacing:0.025rem; }
+.stat-card--primary .stat-unit { color:var(--md-on-primary-container); opacity:0.65; }
+
+.md-card { background:var(--md-surface-high); border-radius:var(--r-xl); overflow:hidden; margin-bottom:8px; box-shadow:var(--elev-1); }
+.card-header { display:flex; align-items:center; justify-content:space-between; padding:16px 16px 8px; }
+.card-title { font-family:'Roboto Mono',monospace; font-size:0.75rem; color:var(--md-on-surface-variant); }
+
+.md-list { padding:4px 0; }
+.md-list-item { display:flex; align-items:center; justify-content:space-between; min-height:48px; padding:8px 16px; }
+.md-divider { height:1px; background:var(--md-outline-variant); margin:0 16px; }
+.item-headline { font-size:1rem; color:var(--md-on-surface); letter-spacing:0.031rem; }
+.item-support { font-size:0.875rem; color:var(--md-on-surface-variant); letter-spacing:0.016rem; margin-top:2px; }
+.item-trailing { font-size:0.875rem; font-weight:500; font-family:'Roboto Mono',monospace; color:var(--md-on-surface); text-align:right; flex-shrink:0; }
+.item-trailing--primary  { color:var(--md-primary); }
+.item-trailing--green    { color:var(--md-green); }
+.item-trailing--tertiary { color:var(--md-tertiary); }
+.item-trailing--error    { color:var(--md-error); }
+
+.md-chip { display:inline-flex; align-items:center; gap:4px; height:32px; padding:0 12px; border-radius:var(--r-sm); font-size:0.875rem; font-weight:500; letter-spacing:0.006rem; border:none; }
+.md-chip--success { background:var(--md-green-container); color:var(--md-green); border:1px solid rgba(102,187,106,0.3); }
+.md-chip--warning { background:var(--md-secondary-container); color:var(--md-secondary); }
+.md-chip--error   { background:var(--md-error-container); color:var(--md-on-error-container); }
+
+.md-progress { height:4px; background:var(--md-surface-highest); border-radius:var(--r-full); overflow:hidden; margin:4px 16px 16px; }
+.md-progress-fill { height:100%; background:var(--md-primary); border-radius:var(--r-full); transition:width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+.cooldown { display:none; align-items:center; gap:10px; margin:0 16px 12px; padding:12px 14px; background:var(--md-secondary-container); border-radius:var(--r-md); font-size:0.875rem; color:var(--md-on-secondary-container); }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+.chart-wrap { padding:12px 16px 16px; }
+canvas#priceChart { width:100%!important; }
+
+.log-item { display:flex; gap:10px; align-items:flex-start; padding:8px 16px; border-bottom:1px solid var(--md-outline-variant); }
+.log-item:last-child { border-bottom:none; }
+.log-ts { font-size:0.6875rem; font-weight:500; color:var(--md-on-surface-variant); flex-shrink:0; width:54px; font-family:'Roboto Mono',monospace; padding-top:2px; }
+.log-msg { font-size:0.75rem; color:var(--md-on-surface-variant); line-height:1.5; word-break:break-word; }
+.log-msg.ok   { color:var(--md-green); }
+.log-msg.warn { color:var(--md-primary); }
+.log-msg.err  { color:var(--md-error); }
+
+.btn-row { display:flex; gap:8px; padding:16px 0 4px; }
+.md-btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; height:40px; padding:0 24px; border-radius:var(--r-full); font-size:0.875rem; font-weight:500; letter-spacing:0.006rem; font-family:Roboto,sans-serif; border:none; cursor:pointer; transition:box-shadow 200ms; text-decoration:none; }
+.md-btn--filled { background:var(--md-primary); color:var(--md-on-primary); flex:1; box-shadow:var(--elev-1); }
+.md-btn--tonal  { background:var(--md-secondary-container); color:var(--md-on-secondary-container); }
+.md-btn--danger { background:var(--md-error-container); color:var(--md-on-error-container); }
+.rtime { font-size:0.75rem; color:var(--md-on-surface-variant); text-align:center; padding:4px 0 8px; letter-spacing:0.025rem; }
+
+.md-nav-bar { position:fixed; bottom:0; left:0; right:0; z-index:200; height:80px; padding-bottom:env(safe-area-inset-bottom); background:var(--md-surface-container); display:flex; box-shadow:0 -1px 0 var(--md-outline-variant), var(--elev-2); }
+.md-nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; border:none; background:transparent; cursor:pointer; padding:12px 0 16px; }
+.nav-indicator { width:64px; height:32px; border-radius:var(--r-full); display:flex; align-items:center; justify-content:center; transition:background 200ms; color:var(--md-on-surface-variant); }
+.md-nav-btn.active .nav-indicator { background:var(--md-primary-container); color:var(--md-on-primary-container); }
+.nav-label { font-size:0.75rem; font-weight:500; letter-spacing:0.031rem; color:var(--md-on-surface-variant); transition:color 200ms; }
+.md-nav-btn.active .nav-label { color:var(--md-on-surface); font-weight:700; }
+.err-banner { display:none; align-items:center; gap:10px; padding:12px 14px; margin:8px 0; background:var(--md-error-container); border-radius:var(--r-md); color:var(--md-on-error-container); font-size:0.875rem; }
+@keyframes flash-up   { 0%,100%{color:inherit} 40%{color:var(--md-green)} }
+@keyframes flash-down { 0%,100%{color:inherit} 40%{color:var(--md-error)} }
+.flash-up   { animation:flash-up   0.6s ease; }
+.flash-down { animation:flash-down 0.6s ease; }
+
+.setup-overlay { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.85); align-items:center; justify-content:center; padding:24px; }
+.setup-overlay.visible { display:flex; }
+.setup-card { background:var(--md-surface-container); border-radius:var(--r-xl); padding:28px 24px; max-width:420px; width:100%; box-shadow:var(--elev-3); }
+.setup-title { font-size:1.25rem; font-weight:500; color:var(--md-on-surface); margin-bottom:6px; }
+.setup-sub { font-size:0.875rem; color:var(--md-on-surface-variant); margin-bottom:20px; line-height:1.5; }
+.setup-lock { font-size:2.5rem; text-align:center; margin-bottom:16px; }
+.settings-field { display:flex; flex-direction:column; gap:6px; padding:14px 16px; }
+.settings-label { font-size:0.75rem; font-weight:500; text-transform:uppercase; letter-spacing:0.031rem; color:var(--md-on-surface-variant); }
+.settings-row { display:flex; align-items:center; gap:10px; }
+.md-input { background:var(--md-surface-container); border:1px solid var(--md-outline-variant); border-radius:var(--r-md); color:var(--md-on-surface); font-size:0.9375rem; font-family:'Roboto Mono',monospace; height:44px; padding:0 14px; width:100%; outline:none; transition:border-color 200ms; }
+.md-input:focus { border-color:var(--md-primary); }
+.md-input[type="password"] { letter-spacing:0.15em; }
+.input-suffix { font-size:0.8125rem; color:var(--md-on-surface-variant); white-space:nowrap; flex-shrink:0; }
+.credential-status { display:flex; align-items:center; gap:8px; padding:10px 16px 14px; font-size:0.875rem; }
+</style>
+</head>
+<body>
+
+<!-- ── FIRST-RUN SETUP OVERLAY ───────────────────────────────────────── -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-card">
+    <div class="setup-lock">🔑</div>
+    <div class="setup-title">Welcome to Hashbot</div>
+    <div class="setup-sub">Paste your Braiins Owner Token to get started. The key is validated against the Braiins API and stored encrypted on your server — it never leaves your machine.</div>
+    <div class="settings-field" style="padding:0 0 12px;">
+      <div class="settings-label">Braiins API Key</div>
+      <input type="password" id="setupKeyInput" class="md-input" placeholder="Paste your Owner Token here" autocomplete="off" spellcheck="false">
+    </div>
+    <div id="setupStatus" style="min-height:28px;margin-bottom:12px;"></div>
+    <button class="md-btn md-btn--filled" onclick="submitSetupKey()" id="btnSetupSave" style="width:100%;height:48px;font-size:1rem;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Validate &amp; Connect
+    </button>
+  </div>
+</div>
+
+<header class="top-app-bar">
+  <div class="app-brand">
+    <div class="app-logo"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10.8636 14.3597C11.6696 14.5726 13.4306 15.0379 13.7109 13.9127C13.9976 12.762 12.2887 12.3789 11.4555 12.192C11.3626 12.1712 11.2805 12.1528 11.2134 12.1361L10.6711 14.3097C10.7264 14.3234 10.7911 14.3405 10.8636 14.3597Z" fill="currentColor"/><path d="M11.6234 11.1832C12.2953 11.3626 13.7608 11.7538 14.0159 10.7312C14.2766 9.68546 12.8525 9.37009 12.1568 9.21604C12.0785 9.1987 12.0094 9.18339 11.953 9.16932L11.4615 11.1408C11.5079 11.1524 11.5624 11.1669 11.6234 11.1832Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M9.82199 20.7305C14.6445 21.9328 19.5281 18.9984 20.7307 14.1771C21.9327 9.35531 18.9981 4.47145 14.1762 3.26933C9.35537 2.06721 4.47138 5.00195 3.26963 9.82381C2.06676 14.6449 5.00151 19.5284 9.82199 20.7305ZM13.9872 8.47795C15.2341 8.90745 16.1461 9.55107 15.967 10.7488C15.8374 11.6253 15.3511 12.0498 14.706 12.1986C15.592 12.6599 16.0429 13.3673 15.6132 14.5936C15.0805 16.1164 13.8141 16.2449 12.13 15.9264L11.7212 17.5642L10.7337 17.3181L11.137 15.7023C10.881 15.6387 10.6195 15.5711 10.3497 15.4981L9.94512 17.1214L8.95875 16.8753L9.36712 15.2344C9.28223 15.2126 9.19679 15.1904 9.11078 15.1679C8.96323 15.1295 8.81403 15.0906 8.66312 15.0528L7.37812 14.7324L7.86812 13.6023C7.86812 13.6023 8.59612 13.7957 8.58625 13.7814C8.86575 13.8507 8.98987 13.6683 9.03887 13.5468L9.68462 10.9581C9.71362 10.9651 9.74197 10.9722 9.7691 10.979C9.77577 10.9807 9.78236 10.9823 9.78887 10.9839C9.74937 10.9679 9.71374 10.9581 9.68624 10.9509L10.1469 9.10282C10.1589 8.89307 10.0867 8.62845 9.68674 8.52858C9.70224 8.51808 8.96962 8.3502 8.96962 8.3502L9.23237 7.29558L10.5941 7.63558L10.5931 7.64058C10.798 7.69158 11.0089 7.73983 11.2237 7.78883L11.6286 6.16683L12.6154 6.41296L12.219 8.00295C12.4841 8.06333 12.7505 8.12433 13.0104 8.18908L13.4042 6.60958L14.3916 6.85571L13.9872 8.47795Z" fill="currentColor"/></svg></div>
+    <span class="app-name">Hashbot</span>
+  </div>
+  <div class="live-pill"><span class="live-dot"></span><span id="hTime">—</span></div>
+</header>
+
+<main>
+
+  <!-- ── DASHBOARD TAB ─────────────────────────────────────────────── -->
+  <div class="tab-content active" id="tab-dash">
+    <div class="err-banner" id="errBanner"><span id="errText"></span></div>
+    <div class="section-header">Bid Status</div>
+    <div class="stat-grid">
+      <div class="stat-card stat-card--primary">
+        <div class="stat-label">Current Bid</div>
+        <div class="stat-value" id="sBid" style="font-size:1.25rem;">—</div>
+        <div class="stat-unit" id="sBidUnit">sat / EH / day</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Target</div>
+        <div class="stat-value stat-value--primary" id="sFifth" style="font-size:1.25rem;">—</div>
+        <div class="stat-unit" id="sFifthUnit">5th active bid +1 tick</div>
+      </div>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-label">Hashrate</div>
+        <div class="stat-value stat-value--green" id="sHash">—</div>
+        <div class="stat-unit">of <span id="sLimit">—</span> PH limit</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Price</div>
+        <div class="stat-value" id="sAvg" style="font-size:1.1rem;">—</div>
+        <div class="stat-unit" id="sAvgUnit">sat / EH / day</div>
+      </div>
+    </div>
+
+    <div class="section-header">Order Details</div>
+    <div class="md-card">
+      <div class="card-header">
+        <span class="card-title" id="dBidId">—</span>
+        <span class="md-chip md-chip--success" id="dChip">ACTIVE</span>
+      </div>
+      <div class="md-list">
+        <div class="md-list-item"><span class="item-headline">Total Budget</span><span class="item-trailing" id="dTotal">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Consumed</span><span class="item-trailing item-trailing--tertiary" id="dConsumed">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Remaining</span><span class="item-trailing" id="dRemain">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Progress</span><span class="item-trailing item-trailing--primary" id="dPct">—</span></div>
+      </div>
+      <div class="md-progress"><div class="md-progress-fill" id="dBar" style="width:0%"></div></div>
+      <div class="md-list">
+        <div class="md-list-item"><span class="item-headline">Last Update</span><span class="item-trailing" id="dUpdated" style="color:var(--md-on-surface-variant)">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Since Update</span><span class="item-trailing" id="dElapsed">—</span></div>
+        <div class="md-divider" id="topupDivider" style="display:none"></div>
+        <div class="md-list-item" id="topupRow" style="display:none"><span class="item-headline">Last Top-up</span><span class="item-trailing item-trailing--green" id="dTopup">—</span></div>
+      </div>
+      <div class="cooldown" id="dCooldown">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;animation:spin 3s linear infinite"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        <span id="dCdText">—</span>
+      </div>
+    </div>
+
+    <div class="section-header">Account Balance</div>
+    <div class="md-card">
+      <div class="md-list">
+        <div class="md-list-item"><span class="item-headline">Total Balance</span><span class="item-trailing item-trailing--primary" id="balTotal">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Available</span><span class="item-trailing item-trailing--green" id="balAvailable">—</span></div>
+        <div class="md-divider"></div>
+        <div class="md-list-item"><span class="item-headline">Locked in Bid</span><span class="item-trailing" id="balBlocked" style="color:var(--md-on-surface-variant)">—</span></div>
+      </div>
+    </div>
+
+    <div class="section-header">Price History</div>
+    <div class="md-card">
+      <div style="display:flex;gap:6px;padding:12px 16px 0;flex-wrap:wrap;">
+        <button class="md-chip md-chip--success period-btn active" onclick="setPeriod(this,'1d')">1D</button>
+        <button class="md-chip md-chip--warning period-btn" onclick="setPeriod(this,'1w')">1W</button>
+        <button class="md-chip md-chip--warning period-btn" onclick="setPeriod(this,'1m')">1M</button>
+        <button class="md-chip md-chip--warning period-btn" onclick="setPeriod(this,'6m')">6M</button>
+        <span id="chartPeriodLabel" style="margin-left:auto;font-size:0.75rem;color:var(--md-on-surface-variant);align-self:center;">24 Hours</span>
+      </div>
+      <div style="display:flex;gap:0;border-bottom:1px solid var(--md-outline-variant);margin-top:8px;">
+        <div style="flex:1;padding:10px 16px;">
+          <div style="font-size:0.6875rem;font-weight:500;text-transform:uppercase;letter-spacing:0.031rem;color:var(--md-on-surface-variant);margin-bottom:4px;">Avg Price</div>
+          <div id="chartAvg" style="font-size:0.875rem;font-weight:500;font-family:Roboto Mono,monospace;color:var(--md-primary);">—</div>
+        </div>
+        <div style="flex:1;padding:10px 16px;border-left:1px solid var(--md-outline-variant);">
+          <div style="font-size:0.6875rem;font-weight:500;text-transform:uppercase;letter-spacing:0.031rem;color:var(--md-on-surface-variant);margin-bottom:4px;">Min</div>
+          <div id="chartMin" style="font-size:0.875rem;font-weight:500;font-family:Roboto Mono,monospace;color:var(--md-green);">—</div>
+        </div>
+        <div style="flex:1;padding:10px 16px;border-left:1px solid var(--md-outline-variant);">
+          <div style="font-size:0.6875rem;font-weight:500;text-transform:uppercase;letter-spacing:0.031rem;color:var(--md-on-surface-variant);margin-bottom:4px;">Max</div>
+          <div id="chartMax" style="font-size:0.875rem;font-weight:500;font-family:Roboto Mono,monospace;color:var(--md-error);">—</div>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="priceChart" height="120"></canvas></div>
+      <div style="padding:0 16px 12px;font-size:0.6875rem;color:var(--md-on-surface-variant);text-align:right;" id="chartDataPoints"></div>
+    </div>
+
+    <div class="section-header">Activity Log</div>
+    <div class="md-card" style="max-height:240px;overflow-y:auto;" id="logWrap">
+      <div style="padding:20px;text-align:center;color:var(--md-on-surface-variant);font-size:0.875rem;">Loading…</div>
+    </div>
+    <div class="btn-row">
+      <button class="md-btn md-btn--filled" onclick="triggerCycle()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Force Cycle
+      </button>
+      <button class="md-btn md-btn--tonal" onclick="loadData()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Refresh
+      </button>
+    </div>
+    <div class="rtime" id="rTime">—</div>
+  </div><!-- /tab-dash -->
+
+
+  <!-- ── SETTINGS TAB ──────────────────────────────────────────────── -->
+  <div class="tab-content" id="tab-settings">
+
+    <!-- API Credentials -->
+    <div class="section-header">API Credentials</div>
+    <div class="md-card">
+      <div class="settings-field">
+        <div class="settings-label">Braiins API Key</div>
+        <input type="password" id="apiKeyInput" class="md-input" placeholder="Paste your Braiins Owner Token" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="credential-status" id="credStatus" style="display:none;"></div>
+      <div class="btn-row" style="padding:4px 16px 16px;">
+        <button class="md-btn md-btn--filled" onclick="saveCredentials()" style="flex:1;" id="btnSaveCred">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          Validate &amp; Save
+        </button>
+        <button class="md-btn md-btn--danger" onclick="removeCredentials()" id="btnRemoveCred" style="padding:0 16px;">
+          Remove Key
+        </button>
+      </div>
+    </div>
+
+    <!-- Bidding Strategy -->
+    <div class="section-header">Bidding Strategy</div>
+    <div class="md-card">
+      <div class="md-list">
+        <div class="md-list-item" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px;">
+          <div>
+            <div class="item-headline">Bid Rank Target</div>
+            <div class="item-support">Which lowest active bid to track</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;width:100%;">
+            <button class="md-btn md-btn--tonal" onclick="adjustRank(-1)" style="height:36px;padding:0 16px;font-size:18px;min-width:44px;">−</button>
+            <div style="flex:1;text-align:center;">
+              <span id="rankDisplay" style="font-size:2rem;font-weight:700;font-family:Roboto Mono,monospace;color:var(--md-primary);">5</span>
+              <span id="rankOrdinal" style="font-size:1rem;color:var(--md-on-surface-variant);margin-left:2px;">th</span>
+              <div style="font-size:0.75rem;color:var(--md-on-surface-variant);margin-top:2px;">lowest active bid</div>
+            </div>
+            <button class="md-btn md-btn--tonal" onclick="adjustRank(1)" style="height:36px;padding:0 16px;font-size:18px;min-width:44px;">+</button>
+          </div>
+        </div>
+        <div class="md-divider"></div>
+        <div class="md-list-item" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px;">
+          <div>
+            <div class="item-headline">Price Offset</div>
+            <div class="item-support">Ticks to add above target bid (1 tick = 1,000 sat). Use negative to bid below.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;width:100%;">
+            <button class="md-btn md-btn--tonal" onclick="adjustTick(-1)" style="height:36px;padding:0 16px;font-size:18px;min-width:44px;">−</button>
+            <div style="flex:1;text-align:center;">
+              <span id="tickDisplay" style="font-size:2rem;font-weight:700;font-family:Roboto Mono,monospace;color:var(--md-primary);">+1</span>
+              <div style="font-size:0.75rem;color:var(--md-on-surface-variant);margin-top:2px;">tick(s) · <span id="tickSat">1,000 sat</span></div>
+            </div>
+            <button class="md-btn md-btn--tonal" onclick="adjustTick(1)" style="height:36px;padding:0 16px;font-size:18px;min-width:44px;">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Display -->
+    <div class="section-header">Display</div>
+    <div class="md-card">
+      <div class="md-list">
+        <div class="md-list-item" style="flex-direction:column;align-items:flex-start;gap:10px;padding:16px;">
+          <div>
+            <div class="item-headline">Price Unit</div>
+            <div class="item-support">How hashrate prices are displayed across the dashboard</div>
+          </div>
+          <div style="display:flex;gap:8px;width:100%;">
+            <button id="unitEH" class="md-btn md-btn--filled" onclick="setUnit('EH')" style="flex:1;height:44px;">sat / EH / day</button>
+            <button id="unitPH" class="md-btn md-btn--tonal"  onclick="setUnit('PH')" style="flex:1;height:44px;">sat / PH / day</button>
+          </div>
+          <div id="unitConversionNote" style="font-size:0.75rem;color:var(--md-on-surface-variant);"></div>
+        </div>
+      </div>
+      <div class="md-divider"></div>
+      <div class="md-list-item" style="flex-direction:column;align-items:flex-start;gap:8px;padding:16px;">
+        <div>
+          <div class="item-headline">Timezone</div>
+          <div class="item-support">Used for all timestamps in the dashboard</div>
+        </div>
+        <select id="cfgTimezone" class="md-input" style="cursor:pointer;max-width:260px;">
+          <optgroup label="Europe">
+            <option value="Europe/Berlin">Europe/Berlin</option>
+            <option value="Europe/London">Europe/London</option>
+            <option value="Europe/Paris">Europe/Paris</option>
+            <option value="Europe/Amsterdam">Europe/Amsterdam</option>
+            <option value="Europe/Zurich">Europe/Zurich</option>
+            <option value="Europe/Madrid">Europe/Madrid</option>
+            <option value="Europe/Rome">Europe/Rome</option>
+            <option value="Europe/Stockholm">Europe/Stockholm</option>
+            <option value="Europe/Helsinki">Europe/Helsinki</option>
+            <option value="Europe/Moscow">Europe/Moscow</option>
+          </optgroup>
+          <optgroup label="Americas">
+            <option value="America/New_York">America/New_York</option>
+            <option value="America/Chicago">America/Chicago</option>
+            <option value="America/Denver">America/Denver</option>
+            <option value="America/Los_Angeles">America/Los_Angeles</option>
+            <option value="America/Toronto">America/Toronto</option>
+            <option value="America/Vancouver">America/Vancouver</option>
+            <option value="America/Sao_Paulo">America/Sao_Paulo</option>
+          </optgroup>
+          <optgroup label="Asia / Pacific">
+            <option value="Asia/Dubai">Asia/Dubai</option>
+            <option value="Asia/Kolkata">Asia/Kolkata</option>
+            <option value="Asia/Singapore">Asia/Singapore</option>
+            <option value="Asia/Tokyo">Asia/Tokyo</option>
+            <option value="Asia/Shanghai">Asia/Shanghai</option>
+            <option value="Asia/Seoul">Asia/Seoul</option>
+            <option value="Australia/Sydney">Australia/Sydney</option>
+          </optgroup>
+          <optgroup label="UTC">
+            <option value="UTC">UTC</option>
+          </optgroup>
+        </select>
+      </div>
+    </div>
+
+    <!-- Current Config preview -->
+    <div class="section-header">Current Config</div>
+    <div class="md-card">
+      <div class="md-list">
+        <div class="md-list-item">
+          <span class="item-headline">Strategy</span>
+          <span class="item-trailing item-trailing--primary" id="strategyPreview">—</span>
+        </div>
+        <div class="md-divider"></div>
+        <div class="md-list-item">
+          <span class="item-headline">Price Unit</span>
+          <span class="item-trailing item-trailing--primary" id="unitPreview">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="md-btn md-btn--filled" onclick="saveSettings()" style="flex:1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Strategy &amp; Display
+      </button>
+    </div>
+    <div class="rtime" id="settingsSaved"></div>
+
+  </div><!-- /tab-settings -->
+
+</main>
+
+<nav class="md-nav-bar">
+  <button class="md-nav-btn active" onclick="switchTab('dash',this)">
+    <div class="nav-indicator"><span class="nav-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8.5 12C8.5 11.2138 8.7592 10.4882 9.19681 9.90392L11.2929 12L9.19681 14.0961C8.7592 13.5118 8.5 12.7862 8.5 12Z" fill="currentColor"/><path d="M14.0961 9.19681C13.5118 8.7592 12.7862 8.5 12 8.5C11.2138 8.5 10.4882 8.7592 9.90391 9.19681L12 11.2929L14.0961 9.19681Z" fill="currentColor"/><path d="M12 12.7071L14.0961 14.8032C13.5118 15.2408 12.7862 15.5 12 15.5C11.2138 15.5 10.4882 15.2408 9.90392 14.8032L12 12.7071Z" fill="currentColor"/><path d="M12.7071 12L14.8032 9.90392C15.2408 10.4882 15.5 11.2138 15.5 12C15.5 12.7862 15.2408 13.5118 14.8032 14.0961L12.7071 12Z" fill="currentColor"/><path fill-rule="evenodd" clip-rule="evenodd" d="M19 5H5V19H19V5ZM8.48405 14.8088L7.14645 16.1465C6.95118 16.3417 6.95118 16.6583 7.14645 16.8536C7.34171 17.0488 7.65829 17.0488 7.85355 16.8536L9.19116 15.516C9.961 16.1318 10.9375 16.5 12 16.5C13.0625 16.5 14.039 16.1318 14.8088 15.516L16.1464 16.8536C16.3417 17.0488 16.6583 17.0488 16.8536 16.8536C17.0488 16.6583 17.0488 16.3417 16.8536 16.1465L15.5159 14.8089C16.1318 14.039 16.5 13.0625 16.5 12C16.5 10.9375 16.1318 9.96099 15.516 9.19116L16.8536 7.85355C17.0488 7.65829 17.0488 7.34171 16.8536 7.14645C16.6583 6.95118 16.3417 6.95118 16.1464 7.14645L14.8088 8.48405C14.039 7.86824 13.0625 7.5 12 7.5C10.9375 7.5 9.96099 7.86824 9.19116 8.48405L7.85355 7.14645C7.65829 6.95118 7.34171 6.95118 7.14645 7.14645C6.95118 7.34171 6.95118 7.65829 7.14645 7.85355L8.48405 9.19116C7.86824 9.96099 7.5 10.9375 7.5 12C7.5 13.0625 7.86824 14.039 8.48405 14.8088Z" fill="currentColor"/></svg></span></div>
+    <span class="nav-label">Dashboard</span>
+  </button>
+  <button class="md-nav-btn" onclick="switchTab('settings',this)">
+    <div class="nav-indicator">
+      <span class="nav-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+    </div>
+    <span class="nav-label">Settings</span>
+  </button>
+</nav>
+
+<script>
+// ── Formatters ────────────────────────────────────────────────────────────
+const fmt  = n => n ? n.toLocaleString('en') : '—';
+function fmtPrice(sat){
+  if(!sat) return '—';
+  return currentSettings.display_unit==='PH'
+    ? (sat/1000).toLocaleString('en',{maximumFractionDigits:0})
+    : sat.toLocaleString('en');
+}
+const fBtc = n => n ? (n/1e8).toFixed(8)+' BTC' : '—';
+const fT   = iso => iso ? new Date(iso).toLocaleTimeString('en',{hour12:false,timeZone:userTimezone}) : '—';
+
+let prevPrice=null, chartData=[], lastTs=null;
+let currentPeriod='1d', periodCache={};
+let currentSettings={bid_rank:5,tick_offset:1,display_unit:'EH'};
+let userTimezone='UTC';
+
+// ── Elapsed timer ─────────────────────────────────────────────────────────
+setInterval(()=>{
+  if(!lastTs)return;
+  const el=document.getElementById('dElapsed');if(!el)return;
+  const s=Math.floor((Date.now()-lastTs)/1000);
+  const m=Math.floor(s/60);
+  el.textContent=m>0?m+'m '+s%60+'s ago':s+'s ago';
+  el.style.color=s>300?'var(--md-error)':s>150?'var(--md-primary)':'var(--md-green)';
+},1000);
+
+// ── Chart ─────────────────────────────────────────────────────────────────
+function drawChart(prices,height){
+  const c=document.getElementById('priceChart');if(!c)return;
+  const W=c.parentElement.clientWidth-32;
+  const H=height||120;
+  c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  const d=prices||chartData;
+  if(!d||d.length<2){
+    ctx.fillStyle='rgba(214,194,140,0.25)';ctx.font='12px Roboto';
+    ctx.fillText('Accumulating history...',12,H/2);return;
+  }
+  const mn=Math.min(...d),mx=Math.max(...d),rng=mx-mn||1;
+  const p={t:10,b:22,l:2,r:2};
+  const iW=W-p.l-p.r,iH=H-p.t-p.b;
+  const pts=d.map((v,i)=>({x:p.l+(i/(d.length-1))*iW,y:p.t+(1-(v-mn)/rng)*iH}));
+  const g=ctx.createLinearGradient(0,p.t,0,H);
+  g.addColorStop(0,'rgba(255,183,77,0.3)');g.addColorStop(1,'rgba(255,183,77,0)');
+  ctx.beginPath();ctx.moveTo(pts[0].x,p.t+iH);
+  pts.forEach(pt=>ctx.lineTo(pt.x,pt.y));
+  ctx.lineTo(pts[pts.length-1].x,p.t+iH);
+  ctx.closePath();ctx.fillStyle=g;ctx.fill();
+  const avgPrice=d.reduce((a,b)=>a+b,0)/d.length;
+  const avgYPos=p.t+(1-(avgPrice-mn)/rng)*iH;
+  ctx.beginPath();ctx.moveTo(p.l,avgYPos);ctx.lineTo(W-p.r,avgYPos);
+  ctx.strokeStyle='rgba(255,183,77,0.25)';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
+  ctx.beginPath();pts.forEach((pt,i)=>i?ctx.lineTo(pt.x,pt.y):ctx.moveTo(pt.x,pt.y));
+  ctx.strokeStyle='#FFB74D';ctx.lineWidth=2;ctx.stroke();
+  const lp=pts[pts.length-1];
+  ctx.beginPath();ctx.arc(lp.x,lp.y,4,0,Math.PI*2);ctx.fillStyle='#FFB74D';ctx.fill();
+  ctx.fillStyle='rgba(214,194,140,0.5)';ctx.font='9px Roboto Mono';
+  ctx.fillText((mx/1e6).toFixed(3)+'M',p.l+2,p.t+9);
+  ctx.fillText((mn/1e6).toFixed(3)+'M',p.l+2,p.t+iH-2);
+}
+
+async function loadPeriodChart(period){
+  try{
+    const data=await fetch('/api/price-history?period='+period).then(r=>r.json());
+    periodCache[period]=data;
+    const prices=data.entries.map(e=>e.price_sat);
+    drawChart(prices,120);
+    const f2=n=>n?n.toLocaleString('en'):'—';
+    document.getElementById('chartAvg').textContent=data.avg_price_sat?f2(data.avg_price_sat)+' sat':'—';
+    document.getElementById('chartMin').textContent=data.min_price_sat?f2(data.min_price_sat)+' sat':'—';
+    document.getElementById('chartMax').textContent=data.max_price_sat?f2(data.max_price_sat)+' sat':'—';
+    document.getElementById('chartPeriodLabel').textContent=data.label||period;
+    const fromDate=data.entries&&data.entries.length?new Date(data.entries[0].ts).toLocaleDateString('en',{month:'short',day:'numeric'}):'';
+    document.getElementById('chartDataPoints').textContent=data.data_points+' pts · from '+fromDate;
+  }catch(e){console.error('chart load:',e);}
+}
+
+function setPeriod(btn,period){
+  document.querySelectorAll('.period-btn').forEach(b=>b.className='md-chip md-chip--warning period-btn');
+  btn.className='md-chip md-chip--success period-btn active';
+  currentPeriod=period;
+  loadPeriodChart(period);
+}
+
+function flash(el,dir){
+  el.classList.remove('flash-up','flash-down');void el.offsetWidth;
+  el.classList.add(dir>0?'flash-up':'flash-down');
+}
+
+// ── Dashboard data ────────────────────────────────────────────────────────
+async function loadData(){
+  try{
+    const st=await fetch('/api/status').then(r=>r.json());
+    if(st.error){
+      document.getElementById('errBanner').style.display='flex';
+      document.getElementById('errText').textContent=st.error;return;
+    }
+    document.getElementById('errBanner').style.display='none';
+    document.getElementById('hTime').textContent=new Date().toLocaleTimeString('en',{hour12:false,timeZone:userTimezone});
+    const bidEl=document.getElementById('sBid');
+    if(prevPrice!==null&&st.current_price_sat!==prevPrice)flash(bidEl,st.current_price_sat-prevPrice);
+    prevPrice=st.current_price_sat;
+    bidEl.textContent=fmtPrice(st.current_price_sat);
+    const fifthVal=st.fifth_bid_sat?st.fifth_bid_sat+1000:0;
+    document.getElementById('sFifth').textContent=fifthVal?fmtPrice(fifthVal):'—';
+    document.getElementById('sFifth').dataset.raw=fifthVal;
+    document.getElementById('sAvg').textContent=fmtPrice(st.avg_price_sat);
+    document.getElementById('sAvg').dataset.raw=st.avg_price_sat||0;
+    document.getElementById('sHash').textContent=(st.avg_speed_ph||0).toFixed(2)+' PH';
+    document.getElementById('sLimit').textContent=st.speed_limit_ph||'—';
+    const s=(st.status||'').replace('BID_STATUS_','');
+    const chip=document.getElementById('dChip');
+    chip.textContent=s;
+    chip.className='md-chip '+(s==='ACTIVE'?'md-chip--success':s.includes('PAUSE')?'md-chip--warning':'md-chip--error');
+    document.getElementById('dBidId').textContent=st.bid_id||'—';
+    document.getElementById('dTotal').textContent=fBtc(st.amount_sat);
+    document.getElementById('dConsumed').textContent=fBtc(st.amount_consumed_sat);
+    document.getElementById('dRemain').textContent=fBtc(st.amount_remaining_sat);
+    document.getElementById('dPct').textContent=(st.progress_pct||0).toFixed(2)+'%';
+    document.getElementById('dBar').style.width=(st.progress_pct||0).toFixed(1)+'%';
+    document.getElementById('dUpdated').textContent=fT(st.last_updated);
+    if(st.last_updated)lastTs=new Date(st.last_updated).getTime();
+    const cd=st.cooldown_remaining_s||0;
+    document.getElementById('dCooldown').style.display=cd>0?'flex':'none';
+    if(cd>0)document.getElementById('dCdText').textContent='Decrease cooldown — '+Math.floor(cd/60)+'m '+cd%60+'s remaining';
+    if(st.price_history&&st.price_history.length){chartData=st.price_history.map(h=>h.price_sat);loadPeriodChart(currentPeriod);}
+    if(st.total_balance_sat!==undefined){
+      document.getElementById('balTotal').textContent=(st.total_balance_sat/1e8).toFixed(8)+' BTC';
+      document.getElementById('balAvailable').textContent=(st.available_balance_sat/1e8).toFixed(8)+' BTC';
+      document.getElementById('balBlocked').textContent=(st.blocked_balance_sat/1e8).toFixed(8)+' BTC';
+    }
+    document.getElementById('rTime').textContent='Updated '+new Date().toLocaleTimeString('en',{hour12:false,timeZone:userTimezone});
+    if(st.last_topup){
+      const tr=document.getElementById('topupRow');const td=document.getElementById('dTopup');
+      const div=document.getElementById('topupDivider');
+      if(tr&&td){tr.style.display='flex';if(div)div.style.display='';
+        td.textContent=new Date(st.last_topup.ts).toLocaleString('en',{timeZone:userTimezone,month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})+' · '+(st.last_topup.new_amount/1e8).toFixed(8)+' BTC';}
+    }
+    loadLog();
+  }catch(e){document.getElementById('rTime').textContent='Error: '+e.message;}
+}
+
+async function loadLog(){
+  try{
+    const data=await fetch('/api/log').then(r=>r.json());
+    const lines=data.lines||[];
+    const wrap=document.getElementById('logWrap');if(!wrap)return;
+    if(!lines.length){wrap.innerHTML='<div style="padding:20px;text-align:center;color:var(--md-on-surface-variant);font-size:0.875rem;">No activity yet.</div>';return;}
+    wrap.innerHTML=[...lines].reverse().map(l=>{
+      const m=l.msg.toLowerCase();
+      let cls='';
+      if(m.includes('updated successfully')||m.includes('no update needed'))cls='ok';
+      else if(m.includes('cooldown')||m.includes('warning'))cls='warn';
+      else if(m.includes('error')||m.includes('failed')||m.includes('400'))cls='err';
+      const ts=l.ts?new Date(l.ts).toLocaleTimeString('en',{hour12:false,timeZone:userTimezone}):'';
+      const msg=l.msg.replace(/.*hashbot\.engine: /,'').replace(/.*api: /,'');
+      return '<div class="log-item"><span class="log-ts">'+ts+'</span><span class="log-msg '+cls+'">'+msg+'</span></div>';
+    }).join('');
+  }catch(e){}
+}
+
+// ── Strategy & Display settings ───────────────────────────────────────────
+function ordinal(n){
+  if(n===1)return '1st';if(n===2)return '2nd';if(n===3)return '3rd';return n+'th';
+}
+
+function updateSettingsUI(){
+  const r=currentSettings.bid_rank;
+  const t=currentSettings.tick_offset;
+  const u=currentSettings.display_unit;
+  document.getElementById('rankDisplay').textContent=r;
+  const ord=ordinal(r);document.getElementById('rankOrdinal').textContent=ord.replace(String(r),'');
+  document.getElementById('tickDisplay').textContent=(t>=0?'+':'')+t;
+  document.getElementById('tickSat').textContent=Math.abs(t*1000).toLocaleString('en')+' sat';
+  document.getElementById('unitEH').className='md-btn '+(u==='EH'?'md-btn--filled':'md-btn--tonal');
+  document.getElementById('unitPH').className='md-btn '+(u==='PH'?'md-btn--filled':'md-btn--tonal');
+  const note=u==='PH'?'1 sat/PH/day = 1,000 sat/EH/day. Values shown ÷1,000.':'Native API unit. No conversion applied.';
+  document.getElementById('unitConversionNote').textContent=note;
+  const tSign=t>=0?'+':'';
+  document.getElementById('strategyPreview').textContent=ordinal(r)+' lowest active bid '+tSign+t+' tick';
+  document.getElementById('unitPreview').textContent='sat / '+u+' / day';
+  const el5=document.getElementById('sFifthUnit');
+  const elBU=document.getElementById('sBidUnit');
+  const elAU=document.getElementById('sAvgUnit');
+  if(el5) el5.textContent=ordinal(r)+' active bid '+(t>=0?'+':'')+t+' tick';
+  if(elBU) elBU.textContent='sat / '+u+' / day';
+  if(elAU) elAU.textContent='sat / '+u+' / day';
+  if(prevPrice) document.getElementById('sBid').textContent=fmtPrice(prevPrice);
+  const f5=parseInt(document.getElementById('sFifth').dataset&&document.getElementById('sFifth').dataset.raw||0);
+  if(f5) document.getElementById('sFifth').textContent=fmtPrice(f5);
+  const fa=parseInt(document.getElementById('sAvg').dataset&&document.getElementById('sAvg').dataset.raw||0);
+  if(fa) document.getElementById('sAvg').textContent=fmtPrice(fa);
+}
+
+function adjustRank(delta){currentSettings.bid_rank=Math.max(1,Math.min(20,currentSettings.bid_rank+delta));updateSettingsUI();}
+function adjustTick(delta){currentSettings.tick_offset=Math.max(-10,Math.min(10,currentSettings.tick_offset+delta));updateSettingsUI();}
+function setUnit(unit){currentSettings.display_unit=unit;updateSettingsUI();}
+
+async function loadSettings(){
+  try{
+    const data=await fetch('/api/settings').then(r=>r.json());
+    currentSettings=data;updateSettingsUI();
+  }catch(e){console.error('loadSettings:',e);}
+}
+
+async function saveSettings(){
+  currentSettings.timezone=document.getElementById('cfgTimezone').value||'UTC';
+  userTimezone=currentSettings.timezone;
+  try{
+    const r=await fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(currentSettings)});
+    const data=await r.json();
+    if(data.ok){
+      document.getElementById('settingsSaved').textContent='Saved at '+new Date().toLocaleTimeString('en',{hour12:false,timeZone:userTimezone});
+    }
+  }catch(e){console.error('saveSettings:',e);}
+}
+
+// ── API Credentials ───────────────────────────────────────────────────────
+function setCredStatus(ok, msg){
+  const el=document.getElementById('credStatus');
+  el.style.display='flex';
+  if(ok===true){
+    el.innerHTML='<span class="md-chip md-chip--success" style="font-size:12px;height:28px;padding:0 10px;">🟢 '+msg+'</span>';
+  } else if(ok===false){
+    el.innerHTML='<span class="md-chip md-chip--error" style="font-size:12px;height:28px;padding:0 10px;">🔴 '+msg+'</span>';
+  } else {
+    el.innerHTML='<span style="font-size:0.8125rem;color:var(--md-on-surface-variant);">'+msg+'</span>';
+  }
+}
+
+async function loadCredentials(){
+  try{
+    const d=await fetch('/api/credentials').then(r=>r.json());
+    if(d.has_key){
+      document.getElementById('apiKeyInput').value='';
+      document.getElementById('apiKeyInput').placeholder=d.key_preview;
+      setCredStatus(true,'Connected to Braiins API');
+    } else {
+      setCredStatus(null,'No API key configured');
+    }
+  }catch(e){console.error('loadCredentials:',e);}
+}
+
+async function saveCredentials(){
+  const key=document.getElementById('apiKeyInput').value.trim();
+  if(!key){setCredStatus(false,'Enter an API key first');return;}
+  const btn=document.getElementById('btnSaveCred');
+  btn.textContent='Validating…';btn.disabled=true;
+  try{
+    const r=await fetch('/api/credentials',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:key})});
+    const d=await r.json();
+    if(d.ok){
+      document.getElementById('apiKeyInput').value='';
+      document.getElementById('apiKeyInput').placeholder=d.key_preview;
+      setCredStatus(true,'Connected to Braiins API');
+    } else {
+      setCredStatus(false,d.error||'Validation failed');
+    }
+  }catch(e){setCredStatus(false,'Request failed: '+e.message);}
+  btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Validate &amp; Save';
+  btn.disabled=false;
+}
+
+async function removeCredentials(){
+  if(!confirm('Remove the API key? Hashbot will stop trading until a new key is saved.'))return;
+  try{
+    await fetch('/api/credentials',{method:'DELETE'});
+    document.getElementById('apiKeyInput').value='';
+    document.getElementById('apiKeyInput').placeholder='Paste your Braiins Owner Token';
+    setCredStatus(false,'Key removed');
+  }catch(e){setCredStatus(false,'Remove failed: '+e.message);}
+}
+
+// ── Timezone (saved as part of strategy settings) ────────────────────────
+async function loadTimezone(){
+  try{
+    const d=await fetch('/api/settings').then(r=>r.json());
+    const tz=d.timezone||'Europe/Berlin';
+    const tzSelect=document.getElementById('cfgTimezone');
+    const opt=[...tzSelect.options].find(o=>o.value===tz);
+    if(opt) tzSelect.value=tz; else tzSelect.value='UTC';
+    userTimezone=tzSelect.value;
+  }catch(e){console.error('loadTimezone:',e);}
+}
+
+// ── Navigation ────────────────────────────────────────────────────────────
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.md-nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='settings'){loadSettings();loadCredentials();loadTimezone();}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+async function triggerCycle(){
+  document.getElementById('rTime').textContent='Running cycle…';
+  try{await fetch('/api/cycle',{method:'POST'});}catch(e){}
+  await loadData();
+}
+
+// ── First-run setup overlay ───────────────────────────────────────────────
+async function checkSetupStatus(){
+  try{
+    const d=await fetch('/api/setup-status').then(r=>r.json());
+    if(!d.ready){
+      document.getElementById('setupOverlay').classList.add('visible');
+      document.getElementById('setupKeyInput').focus();
+    } else {
+      document.getElementById('setupOverlay').classList.remove('visible');
+    }
+    return d.ready;
+  }catch(e){return false;}
+}
+
+function setSetupStatus(ok, msg){
+  const el=document.getElementById('setupStatus');
+  if(ok===true){
+    el.innerHTML='<span class="md-chip md-chip--success" style="font-size:12px;height:28px;padding:0 10px;">🟢 '+msg+'</span>';
+  } else if(ok===false){
+    el.innerHTML='<span class="md-chip md-chip--error" style="font-size:12px;height:28px;padding:0 10px;">🔴 '+msg+'</span>';
+  } else {
+    el.innerHTML='<span style="font-size:0.8125rem;color:var(--md-on-surface-variant);">'+msg+'</span>';
+  }
+}
+
+async function submitSetupKey(){
+  const key=document.getElementById('setupKeyInput').value.trim();
+  if(!key){setSetupStatus(false,'Paste your API key above');return;}
+  const btn=document.getElementById('btnSetupSave');
+  btn.textContent='Validating…';btn.disabled=true;
+  setSetupStatus(null,'Checking with Braiins…');
+  try{
+    const r=await fetch('/api/credentials',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({api_key:key})});
+    const d=await r.json();
+    if(d.ok){
+      setSetupStatus(true,'Connected — starting engine…');
+      document.getElementById('setupKeyInput').value='';
+      setTimeout(()=>{
+        document.getElementById('setupOverlay').classList.remove('visible');
+        // Refresh credentials display in Settings tab
+        loadCredentials();
+        loadData();
+      }, 1200);
+    } else {
+      setSetupStatus(false, d.error||'Validation failed');
+    }
+  }catch(e){setSetupStatus(false,'Request failed: '+e.message);}
+  btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Validate &amp; Connect';
+  btn.disabled=false;
+}
+
+// Allow Enter key in setup overlay
+document.getElementById('setupKeyInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') submitSetupKey();
+});
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────
+async function init(){
+  const ready = await checkSetupStatus();
+  loadSettings();
+  loadTimezone();
+  if(ready) loadData();
+}
+
+window.addEventListener('resize',()=>loadPeriodChart(currentPeriod));
+init();
+setInterval(loadData, 15000);
+setInterval(loadLog, 10000);
+</script>
+</body>
+</html>
