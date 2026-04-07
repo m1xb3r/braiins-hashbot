@@ -4,6 +4,8 @@ Automated Bitcoin hashrate arbitrage for the [Braiins Hashpower Market](https://
 
 Self-hosted · Mobile-first dashboard · One-command Docker deploy · API key encrypted at rest.
 
+> **New to Braiins + OCEAN?** Start with [rentsomehash.com](https://rentsomehash.com/) — a step-by-step guide to setting up your DATUM node, connecting it to Braiins, and mining on OCEAN. Once your bid is live, come back here to automate it with Hashbot.
+
 ---
 
 ## What it does
@@ -26,6 +28,7 @@ Hashbot monitors the Braiins Hashpower Market orderbook every 2 minutes and keep
 
 - Docker 24+ with the Compose plugin (`docker compose version` to check)
 - A Braiins Hashpower Market account with an active bid
+- Not set up yet? Follow the guide at [rentsomehash.com](https://rentsomehash.com/) to go from zero to a working Braiins → DATUM → OCEAN setup, then come back here
 
 ---
 
